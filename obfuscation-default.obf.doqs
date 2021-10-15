@@ -1,0 +1,54 @@
+// To get auto completion, please open this file in IntelliJ Idea and make sure "Endoqa" plugins is installed
+
+
+val exclusions = listOf(
+    "com/oracle"
+)
+
+files {
+    input = "input.jar"
+    output = "output.jar"
+    library {
+        path = "libs/"
+    }
+}
+
+
+// example of class excluding
+val classExcluder = { clazz: ClassNode
+    clazz.name in exclusions || project.libraries.any { it.name == clazz }
+}
+
+exclusions {
+    this.classExcluder = classExcluder
+}
+
+jvm {
+    jvmVersion = JVMVersion.V11
+
+    jdk {
+        jdkPath = env("JAVA_HOME") ?: "C:\\.jdks\\jdk-11"
+
+        jMod {
+            loadingStrategy = Strategy.AutoDetection(preIndex = ".cache/jdk-11.index")
+            mods { addAll(listOf("java.base", "java.desktop")) }
+        }
+    }
+}
+
+obfuscation {
+    number {
+        explode = true
+        smartJIT = true
+    }
+
+    string {
+        useNetwork {
+            methodProvider = project.jar.method("classname", "methodname", "desc")
+            rpc {
+                reflectionHostChecker = true
+            }
+        }
+        indy = true
+    }
+}
